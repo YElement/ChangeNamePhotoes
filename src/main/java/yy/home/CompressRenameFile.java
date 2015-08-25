@@ -19,8 +19,8 @@ import javax.imageio.stream.FileImageOutputStream;
 
 public class CompressRenameFile implements Runnable {
 
-	private static int taskCount = 0;
-	private final int id = taskCount++;
+	//private static int taskCount = 0;
+	//private final int id = taskCount++;
 	private File fileP; // Изменяемый файл
 	private boolean chngName; // Изменять имя файла
 	private boolean mtchName; // Переименовывать только файлы вида Pxxxxxxx.jpg (фотографии)
