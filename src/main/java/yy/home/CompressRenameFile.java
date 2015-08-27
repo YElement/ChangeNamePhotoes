@@ -19,7 +19,7 @@ import javax.imageio.stream.FileImageOutputStream;
 
 public class CompressRenameFile implements Runnable {
 
-	//private static int taskCount = 0;
+	////private static int taskCount = 0;
 	//private final int id = taskCount++;
 	private File fileP; // ָחלוםÿולûי פאיכ
 	private boolean chngName; // ָחלוםÿעü טלÿ פאיכא
