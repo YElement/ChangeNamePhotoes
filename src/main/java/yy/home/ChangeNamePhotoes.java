@@ -200,7 +200,9 @@ public class ChangeNamePhotoes implements ActionListener {
 	}
 
 	public static void main(String[] args) throws IOException {
-		File dir = new File("D:\\ProgJava\\ChangeNamePhotoes\\_Photoes\\");
+		Settings settings = new Settings(new File ("ChangeNamePhotoes.ini"));
+		
+		//File dir = new File("D:\\ProgJava\\ChangeNamePhotoes\\_Photoes\\");
 
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {

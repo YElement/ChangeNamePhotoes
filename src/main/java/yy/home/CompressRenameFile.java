@@ -19,20 +19,18 @@ import javax.imageio.stream.FileImageOutputStream;
 
 public class CompressRenameFile implements Runnable {
 
-	//private static int taskCount = 0;
-	//private final int id = taskCount++;
 	private File fileP; // Изменяемый файл
 	private boolean chngName; // Изменять имя файла
 	private boolean mtchName; // Переименовывать только файлы вида Pxxxxxxx.jpg (фотографии)
 	private float cmprsFile; // Сжимать файл (если 0 - без сжатия)
-	private String prefix; // Префикс перед именем файла
+	private String postfix; // Постфикс после имени файла
 
-	public CompressRenameFile(File fileP, boolean chngName, boolean mtchName, float cmprsFile, String prefix) {
+	public CompressRenameFile(File fileP, boolean chngName, boolean mtchName, float cmprsFile, String postfix) {
 		this.fileP = fileP;
 		this.chngName = chngName;
 		this.mtchName = mtchName;
 		this.cmprsFile = cmprsFile;
-		this.prefix = prefix;
+		this.postfix = postfix;
 	}
 
 	public String status() {
@@ -111,7 +109,7 @@ public class CompressRenameFile implements Runnable {
 		File renamedFile;
 		String ext = getFileExtention(oldFile.getName()).toLowerCase();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		String newFileName = oldFile.getParent() + "\\" + prefix + dateFormat.format(new Date(oldFile.lastModified()));
+		String newFileName = oldFile.getParent() + "\\" + postfix + dateFormat.format(new Date(oldFile.lastModified()));
 		// Проверить, есть ли файл с таким же названием, если есть -
 		// добавить "_i" (i = 1, 2, 3.. и т.д.)
 		int i = 0;
