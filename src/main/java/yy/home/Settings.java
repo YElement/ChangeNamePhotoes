@@ -1,40 +1,49 @@
 package yy.home;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Properties;
+import java.util.prefs.Preferences;
 
 public class Settings {
-	private File dir = new File(System.getProperty("user.dir")); // Каталог
-	private boolean chngName = true; // Изменять имя файла
-	private boolean mtchName = true; // Переименовывать только файлы вида Pxxxxxxx.jpg (фотографии)
-	private float cmprsFile = 0.8f; // Сжимать файл (если 0 - без сжатия)
-	private String postfix = ""; // Префикс перед именем файла
+	private Preferences userPrefs;
+	private File dir; // Рабочий каталог
+	private boolean chngName; // Изменять имя файла
+	private boolean mtchName; // Переименовывать только файлы вида Pxxxxxxx.jpg (фотографии)
+	private boolean cmprsFile; // Сжимать файл
+	private float cmprsValue; // Степень сжатия
+	private boolean postfixFile; // Необходим ли постфикс после имени файла
+	private String postfix; // Постфикс после имени файла
 
-	public Settings(File fileSettings) {
-		Properties props = new Properties();
-		if (!fileSettings.exists()) {
+	public Settings() {
+		userPrefs = Preferences.userRoot().node("changenamephotoes"); // HKEY_CURRENT_USER\Software\JavaSoft\Prefs\changenamephotoes
+		String path = userPrefs.get("dir", "");
+		if (path.equals("")) {
+			dir = new File(System.getProperty("user.home")); // user.dir
+		} else {
 			try {
-				fileSettings.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
+				dir = new File(path);
+				if (!dir.exists()) {
+					throw new Exception();
+				}
+			} catch (Exception e) {
+				dir = new File(System.getProperty("user.home")); // user.dir
 			}
 		}
-		try {
-			props.load(new FileInputStream(fileSettings));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		dir = new File(props.getProperty("Dir"));
-		chngName = Boolean.valueOf(props.getProperty("Change_name", "0"));
-		mtchName = Boolean.valueOf(props.getProperty("Match_name", "0"));
-		cmprsFile = Float.valueOf(props.getProperty("Compress_value", "0.8f"));
-		postfix = props.getProperty("Postfix");
+		chngName = userPrefs.getBoolean("change_name", true);
+		mtchName = userPrefs.getBoolean("match_name", true);
+		cmprsFile = userPrefs.getBoolean("compress_file", true);
+		cmprsValue = userPrefs.getFloat("compress_value", 0.8f);
+		postfixFile = userPrefs.getBoolean("postfix_file", false);
+		postfix = userPrefs.get("postfix_value", "_");
+	}
 
+	public void saveSettings() {
+		userPrefs.put("dir", dir.getPath());
+		userPrefs.putBoolean("change_name", chngName);
+		userPrefs.putBoolean("match_name", mtchName);
+		userPrefs.putBoolean("compress_file", cmprsFile);
+		userPrefs.putFloat("compress_value", cmprsValue);
+		userPrefs.putBoolean("postfix_file", postfixFile);
+		userPrefs.put("postfix_value", postfix);
 	}
 
 	public File getDir() {
@@ -61,20 +70,35 @@ public class Settings {
 		this.mtchName = mtchName;
 	}
 
-	public float getCmprsFile() {
+	public boolean isCmprsFile() {
 		return cmprsFile;
 	}
 
-	public void setCmprsFile(float cmprsFile) {
+	public void setCmprsFile(boolean cmprsFile) {
 		this.cmprsFile = cmprsFile;
+	}
+
+	public float getCmprsValue() {
+		return cmprsValue;
+	}
+
+	public void setCmprsValue(float cmprsFile) {
+		this.cmprsValue = cmprsFile;
+	}
+
+	public boolean isPostfixFile() {
+		return postfixFile;
+	}
+
+	public void setPostfixFile(boolean postfixFile) {
+		this.postfixFile = postfixFile;
 	}
 
 	public String getPostfix() {
 		return postfix;
 	}
 
-	public void setPostfix(String prefix) {
+	public void setPostfix(String postfix) {
 		this.postfix = postfix;
 	}
-
 }

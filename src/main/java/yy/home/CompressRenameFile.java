@@ -20,22 +20,20 @@ import javax.imageio.stream.FileImageOutputStream;
 public class CompressRenameFile implements Runnable {
 
 	private File fileP; // Изменяемый файл
-	private boolean chngName; // Изменять имя файла
-	private boolean mtchName; // Переименовывать только файлы вида Pxxxxxxx.jpg (фотографии)
-	private float cmprsFile; // Сжимать файл (если 0 - без сжатия)
-	private String postfix; // Постфикс после имени файла
+	private Settings settings;
 
-	public CompressRenameFile(File fileP, boolean chngName, boolean mtchName, float cmprsFile, String postfix) {
+	public CompressRenameFile(File fileP, Settings settings) {
 		this.fileP = fileP;
-		this.chngName = chngName;
-		this.mtchName = mtchName;
-		this.cmprsFile = cmprsFile;
-		this.postfix = postfix;
+		this.settings = settings;
 	}
 
-	public String status() {
-		// return "#" + id + "# ";
-		return "";
+	public void out(String s) {
+		ChangeNamePhotoes.messages.add(s);
+		System.out.println(s);
+	}
+
+	public void cmp(File file, int cmp) {
+		ChangeNamePhotoes.compress.put(file, cmp);
 	}
 
 	/**
@@ -46,7 +44,7 @@ public class CompressRenameFile implements Runnable {
 	 * @return true - если проверка прошла успешно
 	 */
 	private boolean checkName(String filename) {
-		if (!mtchName) {
+		if (!settings.isMtchName()) {
 			return true;
 		}
 		Pattern p = Pattern.compile("^P[1-9A-C]{1}[0-9]{6}$");
@@ -109,7 +107,8 @@ public class CompressRenameFile implements Runnable {
 		File renamedFile;
 		String ext = getFileExtention(oldFile.getName()).toLowerCase();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-		String newFileName = oldFile.getParent() + "\\" + postfix + dateFormat.format(new Date(oldFile.lastModified()));
+		String newFileName = oldFile.getParent() + "\\" + dateFormat.format(new Date(oldFile.lastModified()))
+				+ (settings.isPostfixFile() ? settings.getPostfix() : "");
 		// Проверить, есть ли файл с таким же названием, если есть -
 		// добавить "_i" (i = 1, 2, 3.. и т.д.)
 		int i = 0;
@@ -143,45 +142,46 @@ public class CompressRenameFile implements Runnable {
 	public void run() {
 		String ext = getFileExtention(fileP.getName()).toLowerCase();
 		if ("jpg".equals(ext) || "jpeg".equals(ext)) {
-
 			// Переименование, без сжатия
-			if (chngName && checkName(getFileNameWithoutExtention(fileP.getName())) && cmprsFile == 0) {
+			if (settings.isChngName() && checkName(getFileNameWithoutExtention(fileP.getName())) && !settings.isCmprsFile()) {
 				try {
 					while (true) {
 						File fren = getRenamedfile(fileP, false);
 						if (fileP.renameTo(fren)) {
-							System.out.println(status() + fileP.getName() + " -> " + fren.getName());
+							out(fileP.getName() + " -> " + fren.getName());
 							break;
 						}
 					}
 				} catch (Throwable e) {
-					System.out.println(status() + fileP.getName() + " не удалось переименовать файл: " + e.toString());
+					out(fileP.getName() + " не удалось переименовать файл: " + e.toString());
 				}
 				;
 			} else {
 				// Сжатие, с переименованием
-				if (chngName && checkName(getFileNameWithoutExtention(fileP.getName())) && cmprsFile != 0) {
+				if (settings.isChngName() && checkName(getFileNameWithoutExtention(fileP.getName())) && settings.isCmprsFile()) {
 					try {
 						File fren = getRenamedfile(fileP, true);
-						int cmp = compress(fileP, fren, cmprsFile);
+						int cmp = compress(fileP, fren, settings.getCmprsValue());
 						fren.setLastModified(fileP.lastModified());
-						System.out.println(status() + fileP.getName() + " -> " + fren.getName() + " " + cmp + "%");
+						out(fileP.getName() + " -> " + fren.getName() + " " + cmp + "%");
+						cmp(fren, cmp);
 						fileP.delete();
 					} catch (Throwable e) {
-						System.out.println(status() + fileP.getName() + " не удалось сжать и переименовать файл: " + e.toString());
+						out(fileP.getName() + " не удалось сжать и переименовать файл: " + e.toString());
 					}
 					;
 				}
 				// Сжатие, без переименования
-				else if (cmprsFile != 0) {
+				else if (settings.isCmprsFile()) {
 					try {
 						File tempFile = File.createTempFile("tmp", "");
-						int cmp = compress(fileP, tempFile, cmprsFile);
+						int cmp = compress(fileP, tempFile, settings.getCmprsValue());
 						tempFile.setLastModified(fileP.lastModified());
 						Files.move(tempFile.toPath(), fileP.toPath(), StandardCopyOption.REPLACE_EXISTING);
-						System.out.println(status() + fileP.getName() + " " + cmp + "%");
+						out(fileP.getName() + " " + cmp + "%");
+						cmp(fileP, cmp);
 					} catch (Throwable e) {
-						System.out.println(status() + fileP.getName() + " не удалось сжать файл: " + e.toString());
+						out(fileP.getName() + " не удалось сжать файл: " + e.toString());
 					}
 					;
 				}
